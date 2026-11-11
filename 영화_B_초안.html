@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY MOVIE TIER LIST</title>
+<style>
+:root {
+  --bg: #101116;
+  --panel: #1b1d25;
+  --text: #f5f5f7;
+  --muted: #9295a3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 30px 5%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Pretendard", "Malgun Gothic", sans-serif;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 28px;
+}
+h1 { margin: 0; font-size: 27px; letter-spacing: 1px; }
+.subtitle { color: var(--muted); font-size: 13px; margin-top: 8px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button {
+  border: 1px solid #414451;
+  background: #242631;
+  color: white;
+  padding: 11px 16px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 13px;
+}
+button:hover { background: #383b49; }
+.primary { background: #7359e8; border-color: #7359e8; }
+.primary:hover { background: #886ff5; }
+
+.tiers { display: flex; flex-direction: column; gap: 10px; }
+.tier {
+  display: grid;
+  grid-template-columns: 75px 1fr;
+  min-height: 125px;
+  background: var(--panel);
+  border: 1px solid #30323d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.grade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 900;
+}
+.S .grade { background: #e94c62; }
+.A .grade { background: #ed873e; }
+.B .grade { background: #e8c34d; color: #252018; }
+.C .grade { background: #51a7d8; }
+.D .grade { background: #777b8c; }
+
+.dropzone {
+  display: flex;
+  align-items: center;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  min-width: 0;
+  min-height: 125px;
+  transition: background .15s;
+}
+.dropzone.over { background: #34384a; }
+.dropzone:empty::after {
+  content: "영화를 여기에 놓으세요";
+  color: #666a79;
+  font-size: 12px;
+  align-self: center;
+}
+.movie {
+  width: 76px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  text-align: center;
+}
+.movie:active { cursor: grabbing; }
+.poster {
+  width: 76px;
+  height: 108px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: linear-gradient(145deg,#34384d,#171922);
+  box-shadow: 0 3px 10px #0008;
+  position: relative;
+}
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.poster-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 5px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  background: linear-gradient(145deg,#424b69,#171922);
+}
+.movie-name {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: #ddd;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+.movie.dragging { opacity: .3; }
+.library {
+  margin-top: 28px;
+  background: var(--panel);
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #30323d;
+}
+.library h2 { font-size: 16px; margin: 0 0 14px; }
+.library .dropzone { min-height: 125px; padding: 4px; }
+.footer {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  margin-top: 25px;
+}
+#toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #343746;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+  z-index: 100;
+}
+#toast.show { opacity: 1; }
+
+@media(max-width:600px) {
+  body { padding: 20px 12px; }
+  h1 { font-size: 21px; }
+  .tier { grid-template-columns: 48px 1fr; }
+  .grade { font-size: 23px; }
+  .dropzone { gap: 9px; padding: 9px; }
+  .movie, .poster { width: 65px; }
+  .poster { height: 94px; }
+  .movie-name { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎬 MY MOVIE TIER LIST</h1>
+    <div class="subtitle">내가 선정한 최고의 영화들 · 나만의 영화 티어리스트</div>
+  </div>
+  <div class="actions">
+    <button onclick="resetAll()">↺ 초기화</button>
+    <button class="primary" onclick="shareList()">🔗 링크 복사</button>
+  </div>
+</header>
+
+<main>
+  <div class="tiers" id="tiers">
+    <section class="tier S">
+      <div class="grade">S</div>
+      <div class="dropzone" data-tier="S"></div>
+    </section>
+    <section class="tier A">
+      <div class="grade">A</div>
+      <div class="dropzone" data-tier="A"></div>
+    </section>
+    <section class="tier B">
+      <div class="grade">B</div>
+      <div class="dropzone" data-tier="B"></div>
+    </section>
+    <section class="tier C">
+      <div class="grade">C</div>
+      <div class="dropzone" data-tier="C"></div>
+    </section>
+    <section class="tier D">
+      <div class="grade">D</div>
+      <div class="dropzone" data-tier="D"></div>
+    </section>
+  </div>
+
+  <section class="library">
+    <h2>🎞️ 영화 보관함</h2>
+    <div class="dropzone" data-tier="library" id="library"></div>
+  </section>
+</main>
+
+<div class="footer">
+  포스터를 드래그하여 원하는 등급에 배치하세요.<br>
+  배치한 내용은 자동 저장됩니다.
+</div>
+<div id="toast"></div>
+
+<script>
+const movies = [
+  {
+    id:"parasite",
+    name:"기생충",
+    poster:"https://image.tmdb.org/t/p/w185/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+  },
+  {
+    id:"interstellar",
+    name:"인터스텔라",
+    poster:"https://image.tmdb.org/t/p/w185/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg"
+  },
+  {
+    id:"lalaland",
+    name:"라라랜드",
+    poster:"https://image.tmdb.org/t/p/w185/uDO8zWDhfWwoFdKS4fzkUJt0a6l.jpg"
+  },
+  {
+    id:"spirited",
+    name:"센과 치히로의 행방불명",
+    poster:"https://image.tmdb.org/t/p/w185/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg"
+  },
+  {
+    id:"endgame",
+    name:"어벤져스: 엔드게임",
+    poster:"https://image.tmdb.org/t/p/w185/or06FN3Dka5tukK1e9sl16pB3iy.jpg"
+  },
+  {
+    id:"outlaws",
+    name:"범죄도시",
+    poster:""
+  },
+  {
+    id:"titanic",
+    name:"타이타닉",
+    poster:"https://image.tmdb.org/t/p/w185/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg"
+  },
+  {
+    id:"toystory",
+    name:"토이 스토리",
+    poster:"https://image.tmdb.org/t/p/w185/uXDfjJbdP4ijW5hWSBrPrlKpxab.jpg"
+  }
+];
+
+const STORAGE_KEY = "myMovieTierList_v1";
+const tiers = ["S","A","B","C","D","library"];
+
+let state = {};
+let dragged = null;
+let pointerGhost = null;
+let startX = 0;
+let startY = 0;
+let moved = false;
+
+function emptyState() {
+  const result = {};
+  movies.forEach(m => result[m.id] = "library");
+  return result;
+}
+
+function encodeState(data) {
+  const bytes = new TextEncoder().encode(JSON.stringify(data));
+  let binary = "";
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary)
+    .replace(/\+/g,"-")
+    .replace(/\//g,"_")
+    .replace(/=/g,"");
+}
+
+function decodeState(value) {
+  try {
+    const base64 = value.replace(/-/g,"+").replace(/_/g,"/");
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary,c => c.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    const valid = {};
+    movies.forEach(m => {
+      valid[m.id] = tiers.includes(data[m.id])
+        ? data[m.id] : "library";
+    });
+    return valid;
+  } catch(e) {
+    return null;
+  }
+}
+
+function loadState() {
+  const hash = location.hash;
+  if (hash.startsWith("#tier=")) {
+    const shared = decodeState(hash.slice(6));
+    if (shared) return shared;
+  }
+
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const valid = {};
+      movies.forEach(m => {
+        valid[m.id] = tiers.includes(parsed[m.id])
+          ? parsed[m.id] : "library";
+      });
+      return valid;
+    }
+  } catch(e) {}
+
+  return emptyState();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  } catch(e) {}
+}
+
+function render() {
+  document.querySelectorAll(".dropzone").forEach(zone => {
+    zone.innerHTML = "";
+  });
+
+  movies.forEach(movie => {
+    const card = document.createElement("div");
+    card.className = "movie";
+    card.dataset.id = movie.id;
+    card.draggable = false;
+
+    const poster = document.createElement("div");
+    poster.className = "poster";
+
+    const fallback = document.createElement("div");
+    fallback.className = "poster-fallback";
+    fallback.textContent = movie.name;
+
+    if (movie.poster) {
+      const img = document.createElement("img");
+      img.src = movie.poster;
+      img.alt = movie.name + " 포스터";
+      img.loading = "lazy";
+      img.onerror = () => img.remove();
+      poster.appendChild(img);
+    }
+
+    poster.appendChild(fallback);
+
+    const label = document.createElement("span");
+    label.className = "movie-name";
+    label.textContent = movie.name;
+
+    card.append(poster,label);
+    card.addEventListener("pointerdown",startDrag);
+    card.addEventListener("click",() => {
+      if (moved) return;
+      // 클릭하면 다음 등급으로 이동하는 기능은 제공하지 않음
+    });
+
+    document.querySelector(
+      `[data-tier="${state[movie.id]}"]`
+    ).appendChild(card);
+  });
+}
+
+function startDrag(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+
+  dragged = e.currentTarget;
+  moved = false;
+  startX = e.clientX;
+  startY = e.clientY;
+
+  window.addEventListener("pointermove",moveDrag);
+  window.addEventListener("pointerup",endDrag,{once:true});
+}
+
+function moveDrag(e) {
+  if (!dragged) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  if (!pointerGhost && Math.hypot(dx,dy) < 7) return;
+
+  moved = true;
+
+  if (!pointerGhost) {
+    pointerGhost = dragged.cloneNode(true);
+    pointerGhost.style.position = "fixed";
+    pointerGhost.style.zIndex = "9999";
+    pointerGhost.style.pointerEvents = "none";
+    pointerGhost.style.opacity = ".85";
+    pointerGhost.style.width = "76px";
+    pointerGhost.style.transform = "translate(-50%,-50%)";
+    document.body.appendChild(pointerGhost);
+    dragged.classList.add("dragging");
+  }
+
+  pointerGhost.style.left = e.clientX + "px";
+  pointerGhost.style.top = e.clientY + "px";
+
+  document.querySelectorAll(".dropzone").forEach(zone => {
+    const rect = zone.getBoundingClientRect();
+    const inside =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+    zone.classList.toggle("over",inside);
+  });
+}
+
+function endDrag(e) {
+  window.removeEventListener("pointermove",moveDrag);
+
+  if (pointerGhost) {
+    pointerGhost.remove();
+    pointerGhost = null;
+  }
+
+  document.querySelectorAll(".dropzone").forEach(zone => {
+    zone.classList.remove("over");
+  });
+
+  if (dragged) {
+    dragged.classList.remove("dragging");
+
+    if (moved) {
+      const target = document.elementFromPoint(e.clientX,e.clientY);
+      const zone = target && target.closest(".dropzone");
+
+      if (zone) {
+        state[dragged.dataset.id] = zone.dataset.tier;
+        saveState();
+        render();
+      }
+    }
+  }
+
+  dragged = null;
+
+  // 다음 클릭과 드래그를 구분하기 위한 짧은 지연
+  setTimeout(() => moved = false,100);
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"),2200);
+}
+
+async function shareList() {
+  const url = location.href.split("#")[0] +
+    "#tier=" + encodeState(state);
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const input = document.createElement("textarea");
+      input.value = url;
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      const success = document.execCommand("copy");
+      input.remove();
+      if (!success) throw new Error("복사 실패");
+    }
+    showToast("공유 링크가 복사되었습니다! 🎉");
+  } catch(e) {
+    window.prompt("아래 링크를 복사하세요.",url);
+  }
+}
+
+function resetAll() {
+  if (!confirm("모든 영화를 보관함으로 이동할까요?")) return;
+  state = emptyState();
+  saveState();
+  history.replaceState(null,"",location.pathname + location.search);
+  render();
+  showToast("티어리스트를 초기화했습니다.");
+}
+
+state = loadState();
+saveState();
+render();
+
+// 공유 링크를 통해 접속한 경우 해당 상태를 로컬에도 저장
+if (location.hash.startsWith("#tier=")) {
+  showToast("공유된 영화 티어리스트를 불러왔습니다!");
+}
+</script>
+</body>
+</html>
