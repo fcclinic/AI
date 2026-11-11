@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 영화 티어리스트</title>
+    <style>
+        /* 전체 페이지 디자인 */
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #1e1e1e; /* 어두운 배경 */
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* 영화 추가 및 초기화 버튼 영역 */
+        .controls {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        #reset-btn {
+            background-color: #f44336; /* 초기화 버튼은 빨간색 */
+        }
+
+        /* 티어리스트 표 디자인 */
+        .tier-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .tier-row {
+            display: flex;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            min-height: 60px; /* 영화가 없어도 칸이 유지되도록 */
+        }
+        .tier-label {
+            width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+        /* 등급별 색상 */
+        .s-tier { background-color: #ff7f7f; }
+        .a-tier { background-color: #ffbf7f; }
+        .b-tier { background-color: #ffff7f; }
+        .c-tier { background-color: #7fff7f; }
+        .d-tier { background-color: #7fbfff; }
+
+        /* 영화가 놓일 공간 */
+        .tier-items {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        /* 미분류 영화 영역 */
+        .unclassified-container {
+            margin: 30px auto;
+            max-width: 800px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+
+        /* 개별 영화 아이템 디자인 */
+        .movie-item {
+            background-color: #555;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: grab; /* 마우스를 올리면 손바닥 모양 */
+            user-select: none;
+            border: 1px solid #777;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎬 나만의 영화 티어리스트</h1>
+
+    <!-- 컨트롤 영역 -->
+    <div class="controls">
+        <input type="text" id="movie-input" placeholder="추가할 영화 제목 입력">
+        <button id="add-btn">영화 추가</button>
+        <button id="reset-btn">전체 초기화</button>
+    </div>
+
+    <!-- 티어리스트 영역 -->
+    <div class="tier-container">
+        <div class="tier-row">
+            <div class="tier-label s-tier">S</div>
+            <div class="tier-items" id="tier-s"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label a-tier">A</div>
+            <div class="tier-items" id="tier-a"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label b-tier">B</div>
+            <div class="tier-items" id="tier-b"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label c-tier">C</div>
+            <div class="tier-items" id="tier-c"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label d-tier">D</div>
+            <div class="tier-items" id="tier-d"></div>
+        </div>
+    </div>
+
+    <!-- 미분류 영화 영역 -->
+    <div class="unclassified-container">
+        <h3>미분류 영화</h3>
+        <div class="tier-items" id="unclassified">
+            <!-- 자바스크립트로 여기에 영화들을 넣을 예정입니다. -->
+        </div>
+    </div>
+
+</body>
+</html>
