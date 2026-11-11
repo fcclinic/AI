@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매장 손익분기점 계산기</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border-color: #cbd5e1;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+            --warning-bg: #fef2f2;
+            --warning-border: #fca5a5;
+            --info-bg: #eff6ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 20px 12px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+        }
+
+        .notice-box {
+            background-color: var(--info-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 0.875rem;
+            color: #1e40af;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .desc {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="month"], input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .unit {
+            position: absolute;
+            right: 12px;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .has-unit {
+            padding-right: 32px !important;
+            text-align: right;
+        }
+
+        .error-msg {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .subtotal {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        /* 수정된 불러오기 버튼 스타일 (과도한 좌우 늘어짐 방지 및 컴팩트한 디자인) */
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 6px 14px;
+            font-size: 0.85srem;
+            border-radius: 6px;
+            flex: none; /* flex: 1 해제로 늘어남 방지 */
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .btn-outline:hover {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border-color: var(--text-sub);
+        }
+
+        /* Result Section */
+        #result-section {
+            display: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .status-badge.surplus {
+            background-color: #dcfce7;
+            color: var(--success-color);
+        }
+
+        .status-badge.deficit {
+            background-color: #fee2e2;
+            color: var(--danger-color);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background-color: var(--bg-color);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-card .title {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .metric-card.highlight {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .metric-card.highlight .value {
+            color: var(--primary-color);
+        }
+
+        .explanation {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .explanation p {
+            margin-bottom: 8px;
+        }
+
+        .explanation p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Simulation Section */
+        .sim-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 16px;
+            line-height: 1.4;
+        }
+
+        @media print {
+            .btn-group, .btn-outline, .no-print {
+                display: none !important;
+            }
+            body {
+                background: white;
+                padding: 0;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>매장 손익분기점 계산기</h1>
+        <p>월별 매출과 고정비, 변동비 입력하여 매장의 손익 상태와 손익분기점(BEP)을 쉽게 확인하세요.</p>
+        <div class="notice-box">
+            💡 <strong>안내:</strong> 정확한 계산을 위해 모든 금액은 <strong>부가가치세 제외(공급가액)</strong> 기준으로 통일하여 입력해 주세요.
+        </div>
+    </header>
+
+    <form id="bep-form" onsubmit="return false;">
+        <!-- 기본 및 매출 정보 -->
+        <div class="card">
+            <div class="card-title">
+                <span>1. 기본 및 매출 정보</span>
+                <button type="button" class="btn-outline no-print" onclick="loadSavedData()">저장된 값 불러오기</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="target-month">분석 대상 월 *</label>
+                    <div class="desc">분석하고자 하는 년도와 월 선택</div>
+                    <input type="month" id="target-month" required>
+                    <div class="error-msg" id="err-target-month">대상 월을 선택해 주세요.</div>
+                </div>
+                <div class="form-group">
+                    <label for="actual-sales">월 실제 매출액 *</label>
+                    <div class="desc">해당 월의 전체 영업 매출 (공급가액)</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="actual-sales" class="has-unit currency-input" placeholder="0" required>
+                        <span class="unit">원</span>
+                    </div>
+                    <div class="error-msg" id="err-actual-sales">올바른 매출액을 입력해 주세요.</div>
+                </div>
+                <div class="form-group">
+                    <label for="operating-days">실제 영업일수 *</label>
+                    <div class="desc">해당 월의 실제 영업한 날짜 수 (휴무일 제외)</div>
+                    <div class="input-wrapper">
+                        <input type="number" id="operating-days" class="has-unit" min="1" max="31" placeholder="26" required>
+                        <span class="unit">일</span>
+                    </div>
+                    <div class="error-msg" id="err-operating-days">1일 이상의 영업일수를 입력해 주세요.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 고정비 입력 (수도광열비 항목 추가 완료) -->
+        <div class="card">
+            <div class="card-title">2. 고정비 입력</div>
+            <div class="desc" style="margin-bottom: 12px;">매출 발생 여부와 상관없이 매월 일정하게 나가는 비용 (미발생 시 0원)</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="fix-rent">임대료</label>
+                    <div class="desc">월세 및 상가 유지 관리비 연동액</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-rent" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-salary">직원 고정급여</label>
+                    <div class="desc">정직원 등 기본 고정 인건비</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-salary" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-utility">관리비</label>
+                    <div class="desc">건물 정액 관리비 등</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-utility" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <!-- 수도광열비 항목 신규 추가 -->
+                <div class="form-group">
+                    <label for="fix-energy">수도광열비</label>
+                    <div class="desc">전기세, 수도세, 가스비 등 정액 성격 비용</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-energy" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-comm">통신비 · 인터넷비</label>
+                    <div class="desc">매장 전화, 인터넷, POS 통신비</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-comm" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-ins">보험료</label>
+                    <div class="desc">화재보험, 화재배상책임보험 등</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-ins" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-sub">정기 구독료 및 정기 비용</label>
+                    <div class="desc">세무수수료, 렌탈료, 방역비 등</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-sub" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fix-etc">기타 고정비</label>
+                    <div class="desc">기타 정기적 고정 지출</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="fix-etc" class="has-unit currency-input fix-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+            </div>
+            <div class="subtotal">
+                <span>고정비 합계</span>
+                <span id="total-fix-cost">0 원</span>
+            </div>
+        </div>
+
+        <!-- 변동비 입력 -->
+        <div class="card">
+            <div class="card-title">3. 변동비 입력</div>
+            <div class="desc" style="margin-bottom: 12px;">매출이나 판매량에 따라 직접 늘어나거나 줄어드는 비용</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="var-material">식재료비 · 상품 매입원가</label>
+                    <div class="desc">해당 월 판매에 사용된 원가(재고 사용액)</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-material" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="var-supply">포장재 · 일회용품비</label>
+                    <div class="desc">용기, 비닐, 빨대 등 소모품</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-supply" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="var-card">카드 및 간편결제 수수료</label>
+                    <div class="desc">결제대행사 및 카드사 수수료</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-card" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="var-delivery">배달 플랫폼 수수료</label>
+                    <div class="desc">배달앱 중개수수료 및 배달대행료</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-delivery" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="var-labor">매출 연동 인건비</label>
+                    <div class="desc">파트타임, 일용직, 매출연동 수당</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-labor" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="var-etc">기타 변동비</label>
+                    <div class="desc">기타 소모성 경비 등</div>
+                    <div class="input-wrapper">
+                        <input type="text" id="var-etc" class="has-unit currency-input var-cost" placeholder="0">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+            </div>
+            <div class="subtotal">
+                <span>변동비 합계 (변동비율: <span id="var-rate-preview">0%</span>)</span>
+                <span id="total-var-cost">0 원</span>
+            </div>
+        </div>
+
+        <!-- 버튼 영역 -->
+        <div class="btn-group no-print">
+            <button type="button" class="btn-primary" onclick="calculateBEP()">손익분기점 계산하기</button>
+            <button type="button" class="btn-secondary" onclick="resetForm()">초기화</button>
+        </div>
+    </form>
+
+    <!-- 결과 화면 -->
+    <div id="result-section" class="card">
+        <div class="card-title">
+            <span>📊 손익분기점 분석 결과</span>
+            <div>
+                <button type="button" class="btn-outline no-print" onclick="window.print()">인쇄 / PDF 저장</button>
+            </div>
+        </div>
+
+        <div id="status-badge-container"></div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="title">월 실제 매출액</div>
+                <div class="value" id="res-actual-sales">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">월 고정비 합계</div>
+                <div class="value" id="res-total-fix">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">월 변동비 합계</div>
+                <div class="value" id="res-total-var">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">변동비율 (공헌이익률)</div>
+                <div class="value" id="res-var-rate">0%</div>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card highlight">
+                <div class="title">손익분기점(BEP) 매출액</div>
+                <div class="value" id="res-bep-sales">0원</div>
+            </div>
+            <div class="metric-card highlight">
+                <div class="title">추정 영업손익</div>
+                <div class="value" id="res-operating-profit">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">실제 일평균 매출</div>
+                <div class="value" id="res-daily-actual">0원</div>
+            </div>
+            <div class="metric-card">
+                <div class="title">BEP 달성용 일평균 매출</div>
+                <div class="value" id="res-daily-bep">0원</div>
+            </div>
+        </div>
+
+        <div class="explanation" id="result-explanation">
+            <!-- 자바스크립트로 설명문 생성 -->
+        </div>
+
+        <!-- 목표 영업이익 역산 시뮬레이션 -->
+        <div class="sim-box no-print">
+            <label for="target-profit" style="color: #166534;">🎯 목표 영업이익 달성 시뮬레이션</label>
+            <div class="desc">원하는 월 영업이익을 입력하면 필요한 목표 매출액을 계산해 드립니다.</div>
+            <div class="form-grid" style="margin-top: 10px;">
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" id="target-profit" class="has-unit currency-input" placeholder="0" oninput="calculateTargetSales()">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+                <div class="form-group" style="justify-content: center;">
+                    <div style="font-size: 0.95rem; font-weight: 600; color: #15803d;">
+                        필요 월 매출: <span id="target-required-sales">0원</span><br>
+                        필요 일 매출: <span id="target-required-daily">0원</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            * <strong>유의사항:</strong> 본 결과는 입력하신 매출 및 비용 항목(공급가액 기준)을 바탕으로 계산된 경영 관리용 추정치입니다. 입력하지 않은 세금(소득세/법인세), 금융이자, 감가상각비, 기말 재고 변동 등에 따라 실제 회계상 손익과는 차이가 발생할 수 있습니다.
+        </div>
+    </div>
+</div>
+
+<script>
+    // 숫자 포맷팅 함수 (천단위 쉼표)
+    function formatNumber(val) {
+        if (!val && val !== 0) return '';
+        const num = typeof val === 'string' ? val.replace(/,/g, '') : val.toString();
+        if (isNaN(num)) return '';
+        return Number(num).toLocaleString('ko-KR');
+    }
+
+    // 숫자 파싱 함수
+    function parseNumber(val) {
+        if (!val) return 0;
+        const num = val.toString().replace(/,/g, '');
+        return isNaN(num) ? 0 : Number(num);
+    }
+
+    // 통화 입력 필드 이벤트 바인딩
+    document.querySelectorAll('.currency-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = value ? formatNumber(value) : '';
+            updateSubtotals();
+        });
+    });
+
+    // 영업일수 숫자 제한
+    document.getElementById('operating-days').addEventListener('input', (e) => {
+        if (e.target.value < 0) e.target.value = '';
+    });
+
+    // 기본 년월 설정 (현재 달)
+    const today = new Date();
+    const currentMonthStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+    document.getElementById('target-month').value = currentMonthStr;
+
+    // 고정비/변동비 소계 실시간 업데이트
+    function updateSubtotals() {
+        let fixTotal = 0;
+        document.querySelectorAll('.fix-cost').forEach(input => {
+            fixTotal += parseNumber(input.value);
+        });
+        document.getElementById('total-fix-cost').innerText = formatNumber(fixTotal) + ' 원';
+
+        let varTotal = 0;
+        document.querySelectorAll('.var-cost').forEach(input => {
+            varTotal += parseNumber(input.value);
+        });
+        document.getElementById('total-var-cost').innerText = formatNumber(varTotal) + ' 원';
+
+        const actualSales = parseNumber(document.getElementById('actual-sales').value);
+        if (actualSales > 0) {
+            const varRate = ((varTotal / actualSales) * 100).toFixed(1);
+            document.getElementById('var-rate-preview').innerText = varRate + '%';
+        } else {
+            document.getElementById('var-rate-preview').innerText = '0%';
+        }
+    }
+
+    // 검증 메세지 초기화
+    function clearErrors() {
+        document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
+    }
+
+    // 백그라운드 자동 저장 (알림 팝업 없음)
+    function autoSaveData() {
+        const data = {
+            month: document.getElementById('target-month').value,
+            sales: document.getElementById('actual-sales').value,
+            days: document.getElementById('operating-days').value,
+            fix: {},
+            var: {}
+        };
+        document.querySelectorAll('.fix-cost').forEach(input => data.fix[input.id] = input.value);
+        document.querySelectorAll('.var-cost').forEach(input => data.var[input.id] = input.value);
+
+        localStorage.setItem('bep_calculator_data', JSON.stringify(data));
+    }
+
+    // 저장된 데이터 불러오기
+    function loadSavedData() {
+        const saved = localStorage.getItem('bep_calculator_data');
+        if (!saved) {
+            alert('저장된 계산 이력이 없습니다.');
+            return;
+        }
+
+        try {
+            const data = JSON.parse(saved);
+            if (data.month) document.getElementById('target-month').value = data.month;
+            if (data.sales) document.getElementById('actual-sales').value = data.sales;
+            if (data.days) document.getElementById('operating-days').value = data.days;
+
+            if (data.fix) {
+                Object.keys(data.fix).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = data.fix[id];
+                });
+            }
+            if (data.var) {
+                Object.keys(data.var).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = data.var[id];
+                });
+            }
+
+            updateSubtotals();
+            alert('가장 최근에 계산했던 입력값을 불러왔습니다.');
+        } catch (e) {
+            alert('데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 계산하기 버튼 실행 함수
+    function calculateBEP() {
+        clearErrors();
+
+        const monthVal = document.getElementById('target-month').value;
+        const actualSales = parseNumber(document.getElementById('actual-sales').value);
+        const operatingDays = parseInt(document.getElementById('operating-days').value, 10);
+
+        let isValid = true;
+
+        if (!monthVal) {
+            document.getElementById('err-target-month').style.display = 'block';
+            isValid = false;
+        }
+
+        if (!actualSales || actualSales <= 0) {
+            const errEl = document.getElementById('err-actual-sales');
+            errEl.innerText = actualSales === 0 ? '매출액이 0원인 경우 손익분기점을 산출할 수 없습니다.' : '올바른 매출액을 입력해 주세요.';
+            errEl.style.display = 'block';
+            isValid = false;
+        }
+
+        if (!operatingDays || operatingDays < 1) {
+            document.getElementById('err-operating-days').style.display = 'block';
+            isValid = false;
+        }
+
+        // 고정비 & 변동비 계산
+        let fixTotal = 0;
+        document.querySelectorAll('.fix-cost').forEach(input => fixTotal += parseNumber(input.value));
+
+        let varTotal = 0;
+        document.querySelectorAll('.var-cost').forEach(input => varTotal += parseNumber(input.value));
+
+        if (actualSales > 0 && varTotal >= actualSales) {
+            alert('🚨 변동비 합계가 매출액 이상입니다.\n공헌이익이 0 이하가 되어 손익분기점을 산출할 수 없습니다. 변동비 항목 및 매출액을 다시 확인해 주세요.');
+            return;
+        }
+
+        if (!isValid) return;
+
+        // 계산 버튼 실행 시 자동 저장 호출
+        autoSaveData();
+
+        // 산식 적용
+        const varRate = varTotal / actualSales; // 변동비율
+        const contributionMarginRate = 1 - varRate; // 공헌이익률
+        const bepSales = Math.round(fixTotal / contributionMarginRate); // BEP 매출액
+        const operatingProfit = actualSales - varTotal - fixTotal; // 추정 영업손익
+        const dailyActual = Math.round(actualSales / operatingDays); // 실제 일평균
+        const dailyBep = Math.round(bepSales / operatingDays); // BEP 일평균
+        const salesDiff = actualSales - bepSales; // 차액
+
+        // 결과 화면 바인딩
+        document.getElementById('res-actual-sales').innerText = formatNumber(actualSales) + '원';
+        document.getElementById('res-total-fix').innerText = formatNumber(fixTotal) + '원';
+        document.getElementById('res-total-var').innerText = formatNumber(varTotal) + '원';
+        document.getElementById('res-var-rate').innerText = (varRate * 100).toFixed(1) + `% (공헌이익률 ${(contributionMarginRate * 100).toFixed(1)}%)`;
+        document.getElementById('res-bep-sales').innerText = formatNumber(bepSales) + '원';
+        
+        const profitEl = document.getElementById('res-operating-profit');
+        profitEl.innerText = (operatingProfit >= 0 ? '+' : '') + formatNumber(operatingProfit) + '원';
+        profitEl.style.color = operatingProfit >= 0 ? 'var(--success-color)' : 'var(--danger-color)';
+
+        document.getElementById('res-daily-actual').innerText = formatNumber(dailyActual) + '원';
+        document.getElementById('res-daily-bep').innerText = formatNumber(dailyBep) + '원';
+
+        // 뱃지 및 설명 생성
+        const badgeContainer = document.getElementById('status-badge-container');
+        const expEl = document.getElementById('result-explanation');
+
+        const monthText = monthVal ? `${monthVal.split('-')[0]}년 ${parseInt(monthVal.split('-')[1])}월` : '해당 월';
+
+        if (salesDiff >= 0) {
+            badgeContainer.innerHTML = `<span class="status-badge surplus">🎉 손익분기점 초과 (흑자 추정)</span>`;
+            expEl.innerHTML = `
+                <p>• <strong>${monthText}</strong> 매장은 손익분기점 매출액(${formatNumber(bepSales)}원)보다 <strong>${formatNumber(salesDiff)}원</strong> 더 높은 매출을 달성하여 <span style="color:var(--success-color); font-weight:bold;">흑자 상태</span>입니다.</p>
+                <p>• 영업일수 ${operatingDays}일 기준, 하루 평균 <strong>${formatNumber(dailyActual)}원</strong>의 매출을 올려 손익분기 목표 일매출(${formatNumber(dailyBep)}원)을 <strong>${formatNumber(dailyActual - dailyBep)}원</strong> 초과 달성했습니다.</p>
+                <p>• 매출 100원당 변동비로 <strong>${(varRate * 100).toFixed(1)}원</strong>이 지출되고, 남은 <strong>${(contributionMarginRate * 100).toFixed(1)}원</strong>이 고정비 감당 및 이익 창출에 기여하고 있습니다.</p>
+            `;
+        } else {
+            badgeContainer.innerHTML = `<span class="status-badge deficit">⚠️ 손익분기점 미달 (적자 추정)</span>`;
+            expEl.innerHTML = `
+                <p>• <strong>${monthText}</strong> 매장은 손익분기점 매출액(${formatNumber(bepSales)}원)에 <strong>${formatNumber(Math.abs(salesDiff))}원</strong> 미달하여 <span style="color:var(--danger-color); font-weight:bold;">적자 상태</span>로 추정됩니다.</p>
+                <p>• 영업일수 ${operatingDays}일 기준 실제 일평균 매출은 <strong>${formatNumber(dailyActual)}원</strong>이며, 손익분기점 달성을 위해서는 일평균 <strong>${formatNumber(dailyBep - dailyActual)}원</strong>의 추가 매출이 필요합니다.</p>
+                <p>• 경영 개선을 위해 변동비율(${(varRate * 100).toFixed(1)}%) 절감 또는 고정비(${formatNumber(fixTotal)}원) 조정 방안을 검토해 보세요.</p>
+            `;
+        }
+
+        // 결과 영역 표시 및 이동
+        const resSection = document.getElementById('result-section');
+        resSection.style.display = 'block';
+        resSection.scrollIntoView({ behavior: 'smooth' });
+
+        // 목표이익 시뮬레이션 초기화
+        document.getElementById('target-profit').value = '';
+        document.getElementById('target-required-sales').innerText = '0원';
+        document.getElementById('target-required-daily').innerText = '0원';
+    }
+
+    // 목표 이익 달성을 위한 역산 계산
+    function calculateTargetSales() {
+        const targetProfit = parseNumber(document.getElementById('target-profit').value);
+        const actualSales = parseNumber(document.getElementById('actual-sales').value);
+        const operatingDays = parseInt(document.getElementById('operating-days').value, 10) || 1;
+
+        let fixTotal = 0;
+        document.querySelectorAll('.fix-cost').forEach(input => fixTotal += parseNumber(input.value));
+        let varTotal = 0;
+        document.querySelectorAll('.var-cost').forEach(input => varTotal += parseNumber(input.value));
+
+        if (actualSales <= 0 || varTotal >= actualSales) return;
+
+        const contributionMarginRate = 1 - (varTotal / actualSales);
+        if (contributionMarginRate <= 0) return;
+
+        const requiredSales = Math.round((fixTotal + targetProfit) / contributionMarginRate);
+        const requiredDaily = Math.round(requiredSales / operatingDays);
+
+        document.getElementById('target-required-sales').innerText = formatNumber(requiredSales) + '원';
+        document.getElementById('target-required-daily').innerText = formatNumber(requiredDaily) + '원';
+    }
+
+    // 초기화 함수
+    function resetForm() {
+        if (confirm('입력하신 모든 정보와 계산 결과가 초기화됩니다. 계속하시겠습니까?')) {
+            document.getElementById('bep-form').reset();
+            document.getElementById('target-month').value = currentMonthStr;
+            updateSubtotals();
+            clearErrors();
+            document.getElementById('result-section').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+</script>
+</body>
+</html>
