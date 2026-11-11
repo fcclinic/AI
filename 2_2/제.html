@@ -1,0 +1,981 @@
+v<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 기기에서 화면이 깨지지 않고 비율에 맞게 보이도록 하는 필수 태그 (반응형) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ 나만의 여행 일정</title>
+    <style>
+        /* 기본 스타일 및 반응형 레이아웃 설정 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px; /* PC에서는 앱 화면처럼 가운데 정렬되어 보이게 함 */
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        header {
+            background-color: #4A90E2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        
+        /* 섹션 공통 스타일 */
+        .section { padding: 20px; border-bottom: 8px solid #f0f2f5; }
+        .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: #2c3e50; }
+        
+        /* 요약 정보 (항공권, 숙소) */
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .summary-box p { margin: 5px 0; font-size: 0.95rem; }
+        
+        /* 준비물 체크리스트 (CSS만으로 취소선 구현) */
+        .checklist { list-style: none; padding: 0; margin: 0; }
+        .checklist li { margin-bottom: 10px; }
+        .checklist input[type="checkbox"] {
+            width: 18px; height: 18px; margin-right: 10px; vertical-align: middle; cursor: pointer;
+        }
+        .checklist label { font-size: 1rem; cursor: pointer; vertical-align: middle; }
+        /* 체크박스가 체크되면 라벨에 취소선 적용 */
+        .checklist input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+
+        /* 탭 버튼 스타일 */
+        .tabs { display: flex; background-color: #fff; border-bottom: 1px solid #ddd; }
+        .tab-btn {
+            flex: 1; padding: 15px 0; border: none; background: none;
+            font-size: 1rem; font-weight: bold; color: #888; cursor: pointer;
+            border-bottom: 3px solid transparent; transition: 0.3s;
+        }
+        .tab-btn.active { color: #4A90E2; border-bottom: 3px solid #4A90E2; }
+        
+        /* 일정표 내용 */
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        
+        .timeline-item {
+            display: flex; margin-bottom: 20px;
+        }
+        .time {
+            width: 60px; font-weight: bold; color: #4A90E2; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .details {
+            flex-grow: 1; padding-left: 15px; border-left: 2px solid #eee;
+        }
+        .details h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .details p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        /* 링크 및 버튼 스타일 */
+        .map-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #e8f0fe; color: #1a73e8; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+        }
+        .voucher-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #fce8e6; color: #d93025; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 상단: 타이틀 -->
+    <header>
+        <h1>✈️ 오사카 3박 4일 여행</h1>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">2023.11.10 - 2023.11.13</p>
+    </header>
+
+    <!-- 상단: 핵심 정보 요약 -->
+    <div class="section">
+        <h2 class="section-title">📌 예약 정보</h2>
+        <div class="summary-box">
+            <p>🛫 <b>출국:</b> 11/10(금) 10:00 ICN ➔ 11:50 KIX (제주항공)</p>
+            <p>🛬 <b>귀국:</b> 11/13(월) 16:00 KIX ➔ 18:00 ICN (제주항공)</p>
+        </div>
+        <div class="summary-box">
+            <p>🏨 <b>숙소:</b> 난바 오리엔탈 호텔 (3박)</p>
+        </div>
+    </div>
+
+    <!-- 상단: 준비물 체크리스트 -->
+    <div class="section">
+        <h2 class="section-title">🎒 준비물 체크리스트</h2>
+        <ul class="checklist">
+            <li><input type="checkbox" id="item1"><label for="item1">여권 및 여권 사본</label></li>
+            <li><input type="checkbox" id="item2"><label for="item2">환전한 엔화 및 트래블로그 카드</label></li>
+            <li><input type="checkbox" id="item3"><label for="item3">돼지코(110V 변환 어댑터) 및 충전기</label></li>
+            <li><input type="checkbox" id="item4"><label for="item4">보조배터리 (기내 반입)</label></li>
+            <li><input type="checkbox" id="item5"><label for="item5">상비약 (소화제, 진통제, 밴드)</label></li>
+        </ul>
+    </div>
+
+    <!-- 중단: 일차별 탭 버튼 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('day1')">1일차</button>
+        <button class="tab-btn" onclick="openTab('day2')">2일차</button>
+        <button class="tab-btn" onclick="openTab('day3')">3일차</button>
+    </div>
+
+    <!-- 하단: 일정표 내용 (1일차) -->
+    <div id="day1" class="tab-content active">
+        <div class="timeline-item">
+            <div class="time">11:50</div>
+            <div class="details">
+                <h3>간사이 국제공항 도착</h3>
+                <p>입국 심사 및 수하물 찾기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=간사이국제공항" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">13:30</div>
+            <div class="details">
+                <h3>난바역 이동 (라피트)</h3>
+                <p>미리 예매한 QR코드 준비</p>
+                <a href="#" class="voucher-link">🎟️ 라피트 바우처 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">14:30</div>
+            <div class="details">
+                <h3>호텔 짐 보관</h3>
+                <p>체크인 전 짐 맡기기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=난바오리엔탈호텔" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">15:00</div>
+            <div class="details">
+                <h3>도톤보리 점심 식사</h3>
+                <p>이치란 라멘 본점 (웨이팅 주의)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=이치란도톤보리본관" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (2일차) -->
+    <div id="day2" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">08:00</div>
+            <div class="details">
+                <h3>기상 및 조식</h3>
+                <p>호텔 근처 편의점 털기</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">09:30</div>
+            <div class="details">
+                <h3>유니버설 스튜디오 재팬</h3>
+                <p>오픈런! 닌텐도 월드 확약권 받기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=유니버설스튜디오재팬" target="_blank" class="map-link">📍 구글맵 보기</a>
+                <a href="#" class="voucher-link">🎟️ USJ 입장권 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">20:00</div>
+            <div class="details">
+                <h3>우메다 스카이 빌딩</h3>
+                <p>야경 감상 (오사카 주유패스 무료)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=우메다스카이빌딩" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (3일차) -->
+    <div id="day3" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">10:00</div>
+            <div class="details">
+                <h3>교토 당일치기 출발</h3>
+                <p>우메다역에서 한큐선 탑승</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">11:30</div>
+            <div class="details">
+                <h3>청수사 (기요미즈데라)</h3>
+                <p>산넨자카, 니넨자카 구경</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=기요미즈데라" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 탭 전환 기능을 담당하는 자바스크립트 함수
+    function openTab(tabId) {
+        // 1. 모든 탭 내용(tab-content)을 숨깁니다.
+        var contents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        
+        // 2. 모든 탭 버튼(tab-btn)의 활성화 상태(파란색 밑줄)를 해제합니다.
+        var buttons = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("active");
+        }
+        
+        // 3. 클릭한 탭의 내용만 보여줍니다.
+        document.getElementById(tabId).classList.add("active");
+        
+        // 4. 클릭한 버튼에만 활성화 상태를 적용합니다.
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 기기에서 화면이 깨지지 않고 비율에 맞게 보이도록 하는 필수 태그 (반응형) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ 나만의 여행 일정</title>
+    <style>
+        /* 기본 스타일 및 반응형 레이아웃 설정 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px; /* PC에서는 앱 화면처럼 가운데 정렬되어 보이게 함 */
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        header {
+            background-color: #4A90E2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        
+        /* 섹션 공통 스타일 */
+        .section { padding: 20px; border-bottom: 8px solid #f0f2f5; }
+        .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: #2c3e50; }
+        
+        /* 요약 정보 (항공권, 숙소) */
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .summary-box p { margin: 5px 0; font-size: 0.95rem; }
+        
+        /* 준비물 체크리스트 (CSS만으로 취소선 구현) */
+        .checklist { list-style: none; padding: 0; margin: 0; }
+        .checklist li { margin-bottom: 10px; }
+        .checklist input[type="checkbox"] {
+            width: 18px; height: 18px; margin-right: 10px; vertical-align: middle; cursor: pointer;
+        }
+        .checklist label { font-size: 1rem; cursor: pointer; vertical-align: middle; }
+        /* 체크박스가 체크되면 라벨에 취소선 적용 */
+        .checklist input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+
+        /* 탭 버튼 스타일 */
+        .tabs { display: flex; background-color: #fff; border-bottom: 1px solid #ddd; }
+        .tab-btn {
+            flex: 1; padding: 15px 0; border: none; background: none;
+            font-size: 1rem; font-weight: bold; color: #888; cursor: pointer;
+            border-bottom: 3px solid transparent; transition: 0.3s;
+        }
+        .tab-btn.active { color: #4A90E2; border-bottom: 3px solid #4A90E2; }
+        
+        /* 일정표 내용 */
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        
+        .timeline-item {
+            display: flex; margin-bottom: 20px;
+        }
+        .time {
+            width: 60px; font-weight: bold; color: #4A90E2; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .details {
+            flex-grow: 1; padding-left: 15px; border-left: 2px solid #eee;
+        }
+        .details h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .details p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        /* 링크 및 버튼 스타일 */
+        .map-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #e8f0fe; color: #1a73e8; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+        }
+        .voucher-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #fce8e6; color: #d93025; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 상단: 타이틀 -->
+    <header>
+        <h1>✈️ 오사카 3박 4일 여행</h1>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">2023.11.10 - 2023.11.13</p>
+    </header>
+
+    <!-- 상단: 핵심 정보 요약 -->
+    <div class="section">
+        <h2 class="section-title">📌 예약 정보</h2>
+        <div class="summary-box">
+            <p>🛫 <b>출국:</b> 11/10(금) 10:00 ICN ➔ 11:50 KIX (제주항공)</p>
+            <p>🛬 <b>귀국:</b> 11/13(월) 16:00 KIX ➔ 18:00 ICN (제주항공)</p>
+        </div>
+        <div class="summary-box">
+            <p>🏨 <b>숙소:</b> 난바 오리엔탈 호텔 (3박)</p>
+        </div>
+    </div>
+
+    <!-- 상단: 준비물 체크리스트 -->
+    <div class="section">
+        <h2 class="section-title">🎒 준비물 체크리스트</h2>
+        <ul class="checklist">
+            <li><input type="checkbox" id="item1"><label for="item1">여권 및 여권 사본</label></li>
+            <li><input type="checkbox" id="item2"><label for="item2">환전한 엔화 및 트래블로그 카드</label></li>
+            <li><input type="checkbox" id="item3"><label for="item3">돼지코(110V 변환 어댑터) 및 충전기</label></li>
+            <li><input type="checkbox" id="item4"><label for="item4">보조배터리 (기내 반입)</label></li>
+            <li><input type="checkbox" id="item5"><label for="item5">상비약 (소화제, 진통제, 밴드)</label></li>
+        </ul>
+    </div>
+
+    <!-- 중단: 일차별 탭 버튼 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('day1')">1일차</button>
+        <button class="tab-btn" onclick="openTab('day2')">2일차</button>
+        <button class="tab-btn" onclick="openTab('day3')">3일차</button>
+    </div>
+
+    <!-- 하단: 일정표 내용 (1일차) -->
+    <div id="day1" class="tab-content active">
+        <div class="timeline-item">
+            <div class="time">11:50</div>
+            <div class="details">
+                <h3>간사이 국제공항 도착</h3>
+                <p>입국 심사 및 수하물 찾기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=간사이국제공항" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">13:30</div>
+            <div class="details">
+                <h3>난바역 이동 (라피트)</h3>
+                <p>미리 예매한 QR코드 준비</p>
+                <a href="#" class="voucher-link">🎟️ 라피트 바우처 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">14:30</div>
+            <div class="details">
+                <h3>호텔 짐 보관</h3>
+                <p>체크인 전 짐 맡기기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=난바오리엔탈호텔" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">15:00</div>
+            <div class="details">
+                <h3>도톤보리 점심 식사</h3>
+                <p>이치란 라멘 본점 (웨이팅 주의)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=이치란도톤보리본관" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (2일차) -->
+    <div id="day2" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">08:00</div>
+            <div class="details">
+                <h3>기상 및 조식</h3>
+                <p>호텔 근처 편의점 털기</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">09:30</div>
+            <div class="details">
+                <h3>유니버설 스튜디오 재팬</h3>
+                <p>오픈런! 닌텐도 월드 확약권 받기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=유니버설스튜디오재팬" target="_blank" class="map-link">📍 구글맵 보기</a>
+                <a href="#" class="voucher-link">🎟️ USJ 입장권 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">20:00</div>
+            <div class="details">
+                <h3>우메다 스카이 빌딩</h3>
+                <p>야경 감상 (오사카 주유패스 무료)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=우메다스카이빌딩" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (3일차) -->
+    <div id="day3" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">10:00</div>
+            <div class="details">
+                <h3>교토 당일치기 출발</h3>
+                <p>우메다역에서 한큐선 탑승</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">11:30</div>
+            <div class="details">
+                <h3>청수사 (기요미즈데라)</h3>
+                <p>산넨자카, 니넨자카 구경</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=기요미즈데라" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 탭 전환 기능을 담당하는 자바스크립트 함수
+    function openTab(tabId) {
+        // 1. 모든 탭 내용(tab-content)을 숨깁니다.
+        var contents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        
+        // 2. 모든 탭 버튼(tab-btn)의 활성화 상태(파란색 밑줄)를 해제합니다.
+        var buttons = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("active");
+        }
+        
+        // 3. 클릭한 탭의 내용만 보여줍니다.
+        document.getElementById(tabId).classList.add("active");
+        
+        // 4. 클릭한 버튼에만 활성화 상태를 적용합니다.
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 기기에서 화면이 깨지지 않고 비율에 맞게 보이도록 하는 필수 태그 (반응형) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ 나만의 여행 일정</title>
+    <style>
+        /* 기본 스타일 및 반응형 레이아웃 설정 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px; /* PC에서는 앱 화면처럼 가운데 정렬되어 보이게 함 */
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        header {
+            background-color: #4A90E2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        
+        /* 섹션 공통 스타일 */
+        .section { padding: 20px; border-bottom: 8px solid #f0f2f5; }
+        .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: #2c3e50; }
+        
+        /* 요약 정보 (항공권, 숙소) */
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .summary-box p { margin: 5px 0; font-size: 0.95rem; }
+        
+        /* 준비물 체크리스트 (CSS만으로 취소선 구현) */
+        .checklist { list-style: none; padding: 0; margin: 0; }
+        .checklist li { margin-bottom: 10px; }
+        .checklist input[type="checkbox"] {
+            width: 18px; height: 18px; margin-right: 10px; vertical-align: middle; cursor: pointer;
+        }
+        .checklist label { font-size: 1rem; cursor: pointer; vertical-align: middle; }
+        /* 체크박스가 체크되면 라벨에 취소선 적용 */
+        .checklist input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+
+        /* 탭 버튼 스타일 */
+        .tabs { display: flex; background-color: #fff; border-bottom: 1px solid #ddd; }
+        .tab-btn {
+            flex: 1; padding: 15px 0; border: none; background: none;
+            font-size: 1rem; font-weight: bold; color: #888; cursor: pointer;
+            border-bottom: 3px solid transparent; transition: 0.3s;
+        }
+        .tab-btn.active { color: #4A90E2; border-bottom: 3px solid #4A90E2; }
+        
+        /* 일정표 내용 */
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        
+        .timeline-item {
+            display: flex; margin-bottom: 20px;
+        }
+        .time {
+            width: 60px; font-weight: bold; color: #4A90E2; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .details {
+            flex-grow: 1; padding-left: 15px; border-left: 2px solid #eee;
+        }
+        .details h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .details p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        /* 링크 및 버튼 스타일 */
+        .map-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #e8f0fe; color: #1a73e8; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+        }
+        .voucher-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #fce8e6; color: #d93025; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 상단: 타이틀 -->
+    <header>
+        <h1>✈️ 오사카 3박 4일 여행</h1>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">2023.11.10 - 2023.11.13</p>
+    </header>
+
+    <!-- 상단: 핵심 정보 요약 -->
+    <div class="section">
+        <h2 class="section-title">📌 예약 정보</h2>
+        <div class="summary-box">
+            <p>🛫 <b>출국:</b> 11/10(금) 10:00 ICN ➔ 11:50 KIX (제주항공)</p>
+            <p>🛬 <b>귀국:</b> 11/13(월) 16:00 KIX ➔ 18:00 ICN (제주항공)</p>
+        </div>
+        <div class="summary-box">
+            <p>🏨 <b>숙소:</b> 난바 오리엔탈 호텔 (3박)</p>
+        </div>
+    </div>
+
+    <!-- 상단: 준비물 체크리스트 -->
+    <div class="section">
+        <h2 class="section-title">🎒 준비물 체크리스트</h2>
+        <ul class="checklist">
+            <li><input type="checkbox" id="item1"><label for="item1">여권 및 여권 사본</label></li>
+            <li><input type="checkbox" id="item2"><label for="item2">환전한 엔화 및 트래블로그 카드</label></li>
+            <li><input type="checkbox" id="item3"><label for="item3">돼지코(110V 변환 어댑터) 및 충전기</label></li>
+            <li><input type="checkbox" id="item4"><label for="item4">보조배터리 (기내 반입)</label></li>
+            <li><input type="checkbox" id="item5"><label for="item5">상비약 (소화제, 진통제, 밴드)</label></li>
+        </ul>
+    </div>
+
+    <!-- 중단: 일차별 탭 버튼 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('day1')">1일차</button>
+        <button class="tab-btn" onclick="openTab('day2')">2일차</button>
+        <button class="tab-btn" onclick="openTab('day3')">3일차</button>
+    </div>
+
+    <!-- 하단: 일정표 내용 (1일차) -->
+    <div id="day1" class="tab-content active">
+        <div class="timeline-item">
+            <div class="time">11:50</div>
+            <div class="details">
+                <h3>간사이 국제공항 도착</h3>
+                <p>입국 심사 및 수하물 찾기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=간사이국제공항" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">13:30</div>
+            <div class="details">
+                <h3>난바역 이동 (라피트)</h3>
+                <p>미리 예매한 QR코드 준비</p>
+                <a href="#" class="voucher-link">🎟️ 라피트 바우처 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">14:30</div>
+            <div class="details">
+                <h3>호텔 짐 보관</h3>
+                <p>체크인 전 짐 맡기기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=난바오리엔탈호텔" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">15:00</div>
+            <div class="details">
+                <h3>도톤보리 점심 식사</h3>
+                <p>이치란 라멘 본점 (웨이팅 주의)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=이치란도톤보리본관" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (2일차) -->
+    <div id="day2" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">08:00</div>
+            <div class="details">
+                <h3>기상 및 조식</h3>
+                <p>호텔 근처 편의점 털기</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">09:30</div>
+            <div class="details">
+                <h3>유니버설 스튜디오 재팬</h3>
+                <p>오픈런! 닌텐도 월드 확약권 받기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=유니버설스튜디오재팬" target="_blank" class="map-link">📍 구글맵 보기</a>
+                <a href="#" class="voucher-link">🎟️ USJ 입장권 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">20:00</div>
+            <div class="details">
+                <h3>우메다 스카이 빌딩</h3>
+                <p>야경 감상 (오사카 주유패스 무료)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=우메다스카이빌딩" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (3일차) -->
+    <div id="day3" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">10:00</div>
+            <div class="details">
+                <h3>교토 당일치기 출발</h3>
+                <p>우메다역에서 한큐선 탑승</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">11:30</div>
+            <div class="details">
+                <h3>청수사 (기요미즈데라)</h3>
+                <p>산넨자카, 니넨자카 구경</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=기요미즈데라" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 탭 전환 기능을 담당하는 자바스크립트 함수
+    function openTab(tabId) {
+        // 1. 모든 탭 내용(tab-content)을 숨깁니다.
+        var contents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        
+        // 2. 모든 탭 버튼(tab-btn)의 활성화 상태(파란색 밑줄)를 해제합니다.
+        var buttons = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("active");
+        }
+        
+        // 3. 클릭한 탭의 내용만 보여줍니다.
+        document.getElementById(tabId).classList.add("active");
+        
+        // 4. 클릭한 버튼에만 활성화 상태를 적용합니다.
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 기기에서 화면이 깨지지 않고 비율에 맞게 보이도록 하는 필수 태그 (반응형) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✈️ 나만의 여행 일정</title>
+    <style>
+        /* 기본 스타일 및 반응형 레이아웃 설정 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px; /* PC에서는 앱 화면처럼 가운데 정렬되어 보이게 함 */
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        header {
+            background-color: #4A90E2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        
+        /* 섹션 공통 스타일 */
+        .section { padding: 20px; border-bottom: 8px solid #f0f2f5; }
+        .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: #2c3e50; }
+        
+        /* 요약 정보 (항공권, 숙소) */
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .summary-box p { margin: 5px 0; font-size: 0.95rem; }
+        
+        /* 준비물 체크리스트 (CSS만으로 취소선 구현) */
+        .checklist { list-style: none; padding: 0; margin: 0; }
+        .checklist li { margin-bottom: 10px; }
+        .checklist input[type="checkbox"] {
+            width: 18px; height: 18px; margin-right: 10px; vertical-align: middle; cursor: pointer;
+        }
+        .checklist label { font-size: 1rem; cursor: pointer; vertical-align: middle; }
+        /* 체크박스가 체크되면 라벨에 취소선 적용 */
+        .checklist input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+
+        /* 탭 버튼 스타일 */
+        .tabs { display: flex; background-color: #fff; border-bottom: 1px solid #ddd; }
+        .tab-btn {
+            flex: 1; padding: 15px 0; border: none; background: none;
+            font-size: 1rem; font-weight: bold; color: #888; cursor: pointer;
+            border-bottom: 3px solid transparent; transition: 0.3s;
+        }
+        .tab-btn.active { color: #4A90E2; border-bottom: 3px solid #4A90E2; }
+        
+        /* 일정표 내용 */
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        
+        .timeline-item {
+            display: flex; margin-bottom: 20px;
+        }
+        .time {
+            width: 60px; font-weight: bold; color: #4A90E2; font-size: 0.9rem; flex-shrink: 0;
+        }
+        .details {
+            flex-grow: 1; padding-left: 15px; border-left: 2px solid #eee;
+        }
+        .details h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .details p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        /* 링크 및 버튼 스타일 */
+        .map-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #e8f0fe; color: #1a73e8; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+        }
+        .voucher-link {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background-color: #fce8e6; color: #d93025; text-decoration: none;
+            border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 상단: 타이틀 -->
+    <header>
+        <h1>✈️ 오사카 3박 4일 여행</h1>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">2023.11.10 - 2023.11.13</p>
+    </header>
+
+    <!-- 상단: 핵심 정보 요약 -->
+    <div class="section">
+        <h2 class="section-title">📌 예약 정보</h2>
+        <div class="summary-box">
+            <p>🛫 <b>출국:</b> 11/10(금) 10:00 ICN ➔ 11:50 KIX (제주항공)</p>
+            <p>🛬 <b>귀국:</b> 11/13(월) 16:00 KIX ➔ 18:00 ICN (제주항공)</p>
+        </div>
+        <div class="summary-box">
+            <p>🏨 <b>숙소:</b> 난바 오리엔탈 호텔 (3박)</p>
+        </div>
+    </div>
+
+    <!-- 상단: 준비물 체크리스트 -->
+    <div class="section">
+        <h2 class="section-title">🎒 준비물 체크리스트</h2>
+        <ul class="checklist">
+            <li><input type="checkbox" id="item1"><label for="item1">여권 및 여권 사본</label></li>
+            <li><input type="checkbox" id="item2"><label for="item2">환전한 엔화 및 트래블로그 카드</label></li>
+            <li><input type="checkbox" id="item3"><label for="item3">돼지코(110V 변환 어댑터) 및 충전기</label></li>
+            <li><input type="checkbox" id="item4"><label for="item4">보조배터리 (기내 반입)</label></li>
+            <li><input type="checkbox" id="item5"><label for="item5">상비약 (소화제, 진통제, 밴드)</label></li>
+        </ul>
+    </div>
+
+    <!-- 중단: 일차별 탭 버튼 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('day1')">1일차</button>
+        <button class="tab-btn" onclick="openTab('day2')">2일차</button>
+        <button class="tab-btn" onclick="openTab('day3')">3일차</button>
+    </div>
+
+    <!-- 하단: 일정표 내용 (1일차) -->
+    <div id="day1" class="tab-content active">
+        <div class="timeline-item">
+            <div class="time">11:50</div>
+            <div class="details">
+                <h3>간사이 국제공항 도착</h3>
+                <p>입국 심사 및 수하물 찾기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=간사이국제공항" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">13:30</div>
+            <div class="details">
+                <h3>난바역 이동 (라피트)</h3>
+                <p>미리 예매한 QR코드 준비</p>
+                <a href="#" class="voucher-link">🎟️ 라피트 바우처 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">14:30</div>
+            <div class="details">
+                <h3>호텔 짐 보관</h3>
+                <p>체크인 전 짐 맡기기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=난바오리엔탈호텔" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">15:00</div>
+            <div class="details">
+                <h3>도톤보리 점심 식사</h3>
+                <p>이치란 라멘 본점 (웨이팅 주의)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=이치란도톤보리본관" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (2일차) -->
+    <div id="day2" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">08:00</div>
+            <div class="details">
+                <h3>기상 및 조식</h3>
+                <p>호텔 근처 편의점 털기</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">09:30</div>
+            <div class="details">
+                <h3>유니버설 스튜디오 재팬</h3>
+                <p>오픈런! 닌텐도 월드 확약권 받기</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=유니버설스튜디오재팬" target="_blank" class="map-link">📍 구글맵 보기</a>
+                <a href="#" class="voucher-link">🎟️ USJ 입장권 열기</a>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">20:00</div>
+            <div class="details">
+                <h3>우메다 스카이 빌딩</h3>
+                <p>야경 감상 (오사카 주유패스 무료)</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=우메다스카이빌딩" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 하단: 일정표 내용 (3일차) -->
+    <div id="day3" class="tab-content">
+        <div class="timeline-item">
+            <div class="time">10:00</div>
+            <div class="details">
+                <h3>교토 당일치기 출발</h3>
+                <p>우메다역에서 한큐선 탑승</p>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="time">11:30</div>
+            <div class="details">
+                <h3>청수사 (기요미즈데라)</h3>
+                <p>산넨자카, 니넨자카 구경</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=기요미즈데라" target="_blank" class="map-link">📍 구글맵 보기</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 탭 전환 기능을 담당하는 자바스크립트 함수
+    function openTab(tabId) {
+        // 1. 모든 탭 내용(tab-content)을 숨깁니다.
+        var contents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        
+        // 2. 모든 탭 버튼(tab-btn)의 활성화 상태(파란색 밑줄)를 해제합니다.
+        var buttons = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("active");
+        }
+        
+        // 3. 클릭한 탭의 내용만 보여줍니다.
+        document.getElementById(tabId).classList.add("active");
+        
+        // 4. 클릭한 버튼에만 활성화 상태를 적용합니다.
+        event.currentTarget.classList.add("active");
+    }
+</script>
+
+</body>
+</html>
