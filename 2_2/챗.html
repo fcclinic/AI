@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f6f8" />
+  <title>나만의 여행 일정</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-soft: #f8fafb;
+      --text: #1f2933;
+      --muted: #73808c;
+      --line: #e7ebef;
+      --accent: #2d716d;
+      --accent-dark: #205955;
+      --accent-soft: #e9f3f1;
+      --gold: #b88845;
+      --shadow: 0 12px 34px rgba(30, 49, 60, .07);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.55;
+      letter-spacing: -.02em;
+    }
+    a { color: inherit; }
+    button { font: inherit; }
+    .page-shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 30px 0 54px; }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: .14em; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; background: var(--accent); color: white; font-size: 17px; letter-spacing: 0; }
+    .theme-toggle { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 700; transition: .2s ease; }
+    .theme-toggle:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+    .hero { position: relative; overflow: hidden; background: #214f4d; color: #fff; border-radius: 28px; padding: 34px 38px; margin-bottom: 22px; box-shadow: var(--shadow); }
+    .hero::after { content: "✦"; position: absolute; right: 48px; top: 5px; color: rgba(255,255,255,.11); font-size: 150px; line-height: 1; transform: rotate(12deg); pointer-events: none; }
+    .hero-content { position: relative; z-index: 1; max-width: 690px; }
+    .eyebrow { color: #b9d6d0; text-transform: uppercase; font-size: 11px; font-weight: 800; letter-spacing: .18em; margin: 0 0 10px; }
+    .hero h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.18; letter-spacing: -.055em; margin: 0 0 11px; font-weight: 800; }
+    .hero-subtitle { color: rgba(255,255,255,.78); margin: 0; font-size: 14px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+    .hero-chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; background: rgba(255,255,255,.09); color: rgba(255,255,255,.92); font-size: 12px; }
+
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 30px 2px 13px; }
+    .section-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.04em; }
+    .section-heading p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .section-kicker { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+
+    .overview-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(290px, .85fr); gap: 18px; align-items: stretch; }
+    .booking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .booking-card { padding: 19px 20px 17px; min-width: 0; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .card-title { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 14px; }
+    .icon-tile { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent-soft); font-size: 17px; }
+    .mini-label { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+    .booking-main { font-size: 18px; font-weight: 800; letter-spacing: -.04em; margin-bottom: 3px; overflow-wrap: anywhere; }
+    .booking-sub { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+    .detail-list { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .detail-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+    .detail-row span:first-child { color: var(--muted); flex: 0 0 auto; }
+    .detail-row strong { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
+    .voucher-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .voucher-link { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; background: var(--surface-soft); border: 1px solid var(--line); padding: 7px 10px; text-decoration: none; color: var(--accent); font-size: 11px; font-weight: 800; }
+    .voucher-link:hover { background: var(--accent-soft); border-color: #c8dfda; }
+
+    .checklist-card { padding: 20px; }
+    .checklist-card .card-top { margin-bottom: 8px; }
+    .progress-line { height: 6px; background: var(--surface-soft); border-radius: 99px; overflow: hidden; margin: 10px 0 7px; }
+    .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: inherit; transition: width .2s ease; }
+    .progress-caption { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; margin-bottom: 13px; }
+    .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .check-item { display: flex; align-items: flex-start; gap: 8px; min-width: 0; cursor: pointer; font-size: 12px; color: var(--text); }
+    .check-item input { appearance: none; -webkit-appearance: none; width: 17px; height: 17px; flex: 0 0 17px; margin: 1px 0 0; border: 1.5px solid #c6d0d5; border-radius: 5px; background: var(--surface); cursor: pointer; position: relative; }
+    .check-item input:checked { background: var(--accent); border-color: var(--accent); }
+    .check-item input:checked::after { content: "✓"; position: absolute; color: white; font-size: 12px; font-weight: 900; left: 2px; top: -2px; }
+    .check-item:has(input:checked) span { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+    .itinerary-section { margin-top: 34px; }
+    .itinerary-heading { margin-bottom: 14px; }
+    .day-tabs { display: flex; gap: 8px; padding: 5px; background: #e9eef0; border-radius: 15px; width: fit-content; max-width: 100%; margin-bottom: 16px; }
+    .day-tab { border: 0; background: transparent; color: #687680; border-radius: 11px; padding: 10px 19px; min-width: 92px; cursor: pointer; font-weight: 800; font-size: 13px; transition: .2s ease; }
+    .day-tab[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 2px 8px rgba(20, 45, 54, .08); }
+    .day-tab:focus-visible, .theme-toggle:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid rgba(45,113,109,.28); outline-offset: 2px; }
+    .day-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 23px 25px 25px; }
+    .day-panel[hidden] { display: none; }
+    .day-panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+    .day-panel-head h3 { margin: 0; font-size: 21px; letter-spacing: -.045em; }
+    .day-panel-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .day-date { white-space: nowrap; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 7px 11px; font-size: 11px; font-weight: 800; }
+    .schedule { position: relative; }
+    .schedule::before { content: ""; position: absolute; left: 71px; top: 23px; bottom: 22px; width: 1px; background: var(--line); }
+    .schedule-item { display: grid; grid-template-columns: 55px 1fr; gap: 34px; padding: 17px 0; position: relative; }
+    .schedule-time { color: var(--accent); font-size: 12px; font-weight: 900; padding-top: 3px; text-align: right; font-variant-numeric: tabular-nums; }
+    .schedule-content { position: relative; min-width: 0; }
+    .schedule-content::before { content: ""; position: absolute; left: -27px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); z-index: 1; }
+    .schedule-title { margin: 0 0 5px; font-size: 14px; font-weight: 800; }
+    .place-link { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 800; border-bottom: 1px dashed #9bbdb8; padding-bottom: 1px; }
+    .place-link:hover { color: var(--accent-dark); border-bottom-style: solid; }
+    .schedule-note { color: var(--muted); font-size: 12px; margin: 7px 0 0; }
+    .schedule-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .schedule-tag { color: var(--muted); background: var(--surface-soft); border: 1px solid var(--line); border-radius: 999px; font-size: 10px; padding: 3px 8px; }
+
+    .share-note { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border: 1px solid #e3eae8; background: #f0f6f4; border-radius: 16px; color: #526b67; margin-top: 18px; font-size: 11px; }
+    .share-note strong { color: #315d58; }
+    .footer { display: flex; justify-content: space-between; gap: 14px; padding: 22px 2px 0; color: var(--muted); font-size: 10px; }
+
+    body.theme-dark {
+      color-scheme: dark;
+      --bg: #131b20;
+      --surface: #1c282e;
+      --surface-soft: #243239;
+      --text: #e7edef;
+      --muted: #9aaab1;
+      --line: #314149;
+      --accent: #83c4b7;
+      --accent-dark: #a2d8ce;
+      --accent-soft: #263f3e;
+      --shadow: 0 12px 34px rgba(0,0,0,.18);
+    }
+    body.theme-dark .hero { background: #183a39; }
+    body.theme-dark .day-tabs { background: #202e34; }
+    body.theme-dark .day-tab { color: #a6b4ba; }
+    body.theme-dark .day-tab[aria-selected="true"] { color: var(--accent); }
+    body.theme-dark .share-note { background: #203432; border-color: #344e4b; color: #b2c9c4; }
+    body.theme-dark .share-note strong { color: #d0e7e1; }
+
+    @media (max-width: 800px) {
+      .page-shell { width: min(100% - 28px, 650px); padding-top: 18px; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .hero { padding: 28px 25px; }
+      .hero::after { right: 16px; font-size: 115px; }
+      .checklist-card { padding: 19px; }
+    }
+    @media (max-width: 560px) {
+      .page-shell { width: calc(100% - 22px); padding: 13px 0 34px; }
+      .topbar { margin-bottom: 16px; }
+      .brand { font-size: 11px; }
+      .theme-toggle { padding: 8px 11px; font-size: 11px; }
+      .hero { border-radius: 22px; padding: 24px 20px; margin-bottom: 16px; }
+      .hero h1 { font-size: 29px; }
+      .hero-subtitle { font-size: 12px; max-width: 270px; }
+      .hero-chip { font-size: 10px; padding: 6px 9px; }
+      .section-heading { margin-top: 24px; }
+      .section-heading h2 { font-size: 17px; }
+      .booking-grid { grid-template-columns: 1fr; gap: 10px; }
+      .booking-card { padding: 16px; }
+      .checklist-card { padding: 16px; }
+      .checklist { grid-template-columns: 1fr 1fr; gap: 11px 8px; }
+      .check-item { font-size: 11px; }
+      .itinerary-section { margin-top: 28px; }
+      .day-tabs { width: 100%; gap: 5px; }
+      .day-tab { flex: 1; min-width: 0; padding: 10px 7px; font-size: 12px; }
+      .day-panel { padding: 18px 15px 15px; border-radius: 20px; }
+      .day-panel-head { gap: 8px; padding-bottom: 14px; }
+      .day-panel-head h3 { font-size: 18px; }
+      .day-panel-head p { font-size: 11px; }
+      .day-date { font-size: 10px; padding: 6px 8px; }
+      .schedule::before { left: 57px; }
+      .schedule-item { grid-template-columns: 43px 1fr; gap: 29px; padding: 15px 0; }
+      .schedule-time { font-size: 11px; }
+      .schedule-content::before { left: -24px; }
+      .schedule-title { font-size: 13px; }
+      .place-link, .schedule-note { font-size: 11px; }
+      .share-note { padding: 12px; font-size: 10px; }
+      .footer { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">✈</span><span>MY TRAVEL NOTE</span></div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">☾ 다크 모드</button>
+    </header>
+
+    <section class="hero" aria-labelledby="tripTitle">
+      <div class="hero-content">
+        <p class="eyebrow">YOUR JOURNEY, YOUR STORY</p>
+        <!-- 여행 제목과 날짜를 실제 정보로 바꿔주세요. -->
+        <h1 id="tripTitle">나만의 여행 일정</h1>
+        <p class="hero-subtitle">필요한 정보는 한눈에, 하루의 동선은 간편하게.</p>
+        <div class="hero-meta">
+          <span class="hero-chip">📍 여행지 입력</span>
+          <span class="hero-chip">📅 여행 날짜 입력</span>
+          <span class="hero-chip">🧳 3일 일정 예시</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-heading">
+      <div><span class="section-kicker">BEFORE YOU GO</span><h2>여행 준비 정보</h2><p>항공권과 숙소 정보를 미리 정리해 두세요.</p></div>
+    </div>
+
+    <section class="overview-grid" aria-label="여행 예약 정보와 준비물">
+      <div class="booking-grid">
+        <article class="card booking-card">
+          <div class="card-top">
+            <div class="card-title"><span class="icon-tile">✈️</span> 항공권 정보</div>
+            <span class="mini-label">FLIGHT</span>
+          </div>
+          <div class="booking-main">항공편 정보를 입력하세요</div>
+          <div class="booking-sub">항공사 · 편명 · 예약자 이름</div>
+          <div class="detail-list">
+            <div class="detail-row"><span>가는 편</span><strong>날짜 / 출발·도착 시간</strong></div>
+            <div class="detail-row"><span>오는 편</span><strong>날짜 / 출발·도착 시간</strong></div>
+            <div class="detail-row"><span>예약번호</span><strong>예약번호 입력</strong></div>
+          </div>
+          <!-- 아래 링크의 href를 실제 항공권 바우처 주소로 바꾸세요. -->
+          <div class="voucher-row">
+            <a class="voucher-link" href="https://www.google.com/search?q=%ED%95%AD%EA%B3%B5%EA%B6%8C+%EC%98%88%EC%95%BD+%ED%99%95%EC%9D%B8" target="_blank" rel="noopener noreferrer">🎫 항공권 바우처 ↗</a>
+          </div>
+        </article>
+
+        <article class="card booking-card">
+          <div class="card-top">
+            <div class="card-title"><span class="icon-tile">🏨</span> 숙소 정보</div>
+            <span class="mini-label">STAY</span>
+          </div>
+          <div class="booking-main">숙소 이름을 입력하세요</div>
+          <div class="booking-sub">호텔 · 숙박 시설 · 연락처</div>
+          <div class="detail-list">
+            <div class="detail-row"><span>체크인</span><strong>날짜 / 시간</strong></div>
+            <div class="detail-row"><span>체크아웃</span><strong>날짜 / 시간</strong></div>
+            <div class="detail-row"><span>예약번호</span><strong>예약번호 입력</strong></div>
+          </div>
+          <!-- 아래 링크의 href를 실제 숙소 바우처 주소로 바꾸세요. -->
+          <div class="voucher-row">
+            <a class="voucher-link" href="https://www.google.com/search?q=%EC%88%99%EC%86%8C+%EC%98%88%EC%95%BD+%ED%99%95%EC%9D%B8" target="_blank" rel="noopener noreferrer">🧾 숙소 바우처 ↗</a>
+          </div>
+        </article>
+      </div>
+
+      <aside class="card checklist-card">
+        <div class="card-top">
+          <div class="card-title"><span class="icon-tile">✅</span> 준비물 체크리스트</div>
+          <span class="mini-label">CHECK</span>
+        </div>
+        <div class="progress-line" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-caption"><span>준비 완료</span><strong id="progressText">0 / 8</strong></div>
+        <div class="checklist" id="checklist">
+          <label class="check-item"><input type="checkbox"><span>여권 · 신분증</span></label>
+          <label class="check-item"><input type="checkbox"><span>항공권 · 숙소 바우처</span></label>
+          <label class="check-item"><input type="checkbox"><span>여행자 보험</span></label>
+          <label class="check-item"><input type="checkbox"><span>현금 · 카드</span></label>
+          <label class="check-item"><input type="checkbox"><span>휴대폰 충전기</span></label>
+          <label class="check-item"><input type="checkbox"><span>보조배터리</span></label>
+          <label class="check-item"><input type="checkbox"><span>상비약</span></label>
+          <label class="check-item"><input type="checkbox"><span>세면도구 · 개인용품</span></label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="itinerary-section" aria-labelledby="itineraryTitle">
+      <div class="section-heading itinerary-heading">
+        <div><span class="section-kicker">DAY BY DAY</span><h2 id="itineraryTitle">여행 일정표</h2><p>일차를 선택하면 해당 날짜의 일정만 표시됩니다.</p></div>
+      </div>
+
+      <div class="day-tabs" role="tablist" aria-label="여행 일차 선택">
+        <button class="day-tab" id="tab-day1" type="button" role="tab" aria-selected="true" aria-controls="day1" data-day="day1">1일차</button>
+        <button class="day-tab" id="tab-day2" type="button" role="tab" aria-selected="false" aria-controls="day2" data-day="day2">2일차</button>
+        <button class="day-tab" id="tab-day3" type="button" role="tab" aria-selected="false" aria-controls="day3" data-day="day3">3일차</button>
+      </div>
+
+      <!-- 일정 수정 방법: 시간, 일정 제목, 장소 이름, 메모를 직접 바꾸면 됩니다. 장소 링크는 장소 이름을 읽어 구글 지도 검색 주소를 자동으로 만듭니다. -->
+      <section class="day-panel" id="day1" role="tabpanel" aria-labelledby="tab-day1">
+        <div class="day-panel-head">
+          <div><h3>1일차 · 도착과 여행 시작</h3><p>이동 동선을 정리하고 첫날은 여유 있게 시작해 보세요.</p></div>
+          <span class="day-date">DAY 01 · 날짜 입력</span>
+        </div>
+        <div class="schedule">
+          <article class="schedule-item">
+            <time class="schedule-time">09:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">출발 및 공항 이동</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">출발 공항</a><p class="schedule-note">항공편 출발 시간과 공항 도착 시간을 확인하세요.</p><div class="schedule-tags"><span class="schedule-tag">이동</span><span class="schedule-tag">항공권 확인</span></div></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">13:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">점심 식사</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">점심 식당 이름 입력</a><p class="schedule-note">먹고 싶은 메뉴나 예약 내용을 간단히 메모하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">15:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">첫 번째 방문 장소</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">방문 장소 이름 입력</a><p class="schedule-note">입장권, 운영 시간, 관람 포인트 등을 기록하세요.</p><div class="schedule-tags"><span class="schedule-tag">관광</span><span class="schedule-tag">사진</span></div></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">18:30</time>
+            <div class="schedule-content"><h4 class="schedule-title">저녁 식사</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">저녁 식당 이름 입력</a><p class="schedule-note">예약 시간과 대기 여부를 확인하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">20:30</time>
+            <div class="schedule-content"><h4 class="schedule-title">숙소 체크인 및 휴식</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">숙소 이름 입력</a><p class="schedule-note">체크인 정보와 숙소 주소를 확인하세요.</p><div class="schedule-tags"><span class="schedule-tag">체크인</span><span class="schedule-tag">휴식</span></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="day-panel" id="day2" role="tabpanel" aria-labelledby="tab-day2" hidden>
+        <div class="day-panel-head">
+          <div><h3>2일차 · 본격적인 여행</h3><p>방문 순서와 이동 시간을 고려해 동선을 구성하세요.</p></div>
+          <span class="day-date">DAY 02 · 날짜 입력</span>
+        </div>
+        <div class="schedule">
+          <article class="schedule-item">
+            <time class="schedule-time">09:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">아침 식사</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">아침 식당 이름 입력</a><p class="schedule-note">영업 시작 시간과 대표 메뉴를 확인하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">10:30</time>
+            <div class="schedule-content"><h4 class="schedule-title">오전 관광</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">오전 방문 장소 입력</a><p class="schedule-note">이동 방법과 예상 체류 시간을 메모하세요.</p><div class="schedule-tags"><span class="schedule-tag">관광</span></div></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">13:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">점심 식사</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">점심 식당 이름 입력</a><p class="schedule-note">주문할 메뉴나 예약 정보를 기록하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">15:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">오후 일정</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">오후 방문 장소 입력</a><p class="schedule-note">주변에 함께 둘러볼 곳이 있는지 확인하세요.</p><div class="schedule-tags"><span class="schedule-tag">산책</span><span class="schedule-tag">쇼핑</span></div></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">19:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">저녁 및 자유 시간</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">저녁 장소 입력</a><p class="schedule-note">마지막 이동 수단과 숙소 복귀 시간을 확인하세요.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="day-panel" id="day3" role="tabpanel" aria-labelledby="tab-day3" hidden>
+        <div class="day-panel-head">
+          <div><h3>3일차 · 마무리와 귀국</h3><p>체크아웃과 공항 이동 시간을 넉넉하게 잡으세요.</p></div>
+          <span class="day-date">DAY 03 · 날짜 입력</span>
+        </div>
+        <div class="schedule">
+          <article class="schedule-item">
+            <time class="schedule-time">08:30</time>
+            <div class="schedule-content"><h4 class="schedule-title">아침 및 체크아웃 준비</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">숙소 이름 입력</a><p class="schedule-note">짐, 여권, 객실 소지품을 확인하세요.</p><div class="schedule-tags"><span class="schedule-tag">체크아웃</span></div></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">10:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">마지막 방문 장소</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">마지막 방문 장소 입력</a><p class="schedule-note">공항 이동 시간을 고려해 가까운 곳 위주로 계획하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">12:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">점심 식사 및 공항 이동</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">공항 이동 출발 지점 입력</a><p class="schedule-note">교통편과 소요 시간을 미리 확인하세요.</p></div>
+          </article>
+          <article class="schedule-item">
+            <time class="schedule-time">15:00</time>
+            <div class="schedule-content"><h4 class="schedule-title">공항 도착 및 탑승 수속</h4><a class="place-link" data-map href="#" target="_blank" rel="noopener noreferrer">귀국 공항</a><p class="schedule-note">체크인 카운터, 수하물, 탑승구를 확인하세요.</p><div class="schedule-tags"><span class="schedule-tag">귀국</span><span class="schedule-tag">탑승 수속</span></div></div>
+          </article>
+        </div>
+      </section>
+
+      <div class="share-note"><span>💡</span><div><strong>일정 공유 팁</strong><br>이 파일을 그대로 친구에게 보내면 같은 일정표를 볼 수 있습니다. 실제 여행 정보로 바꾸려면 파일을 메모장이나 코드 편집기로 열어 글자와 링크 주소를 수정하세요.</div></div>
+    </section>
+
+    <footer class="footer"><span>MY TRAVEL NOTE · ONE FILE, READY TO GO</span><span>체크 상태와 화면 설정은 새로고침하면 초기화됩니다.</span></footer>
+  </div>
+
+  <script>
+    // 일차별 탭: 페이지 새로고침 없이 해당 일정만 보여줍니다.
+    const dayTabs = document.querySelectorAll('.day-tab');
+    const dayPanels = document.querySelectorAll('.day-panel');
+
+    dayTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const targetId = tab.dataset.day;
+        dayTabs.forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+        dayPanels.forEach((panel) => {
+          panel.hidden = panel.id !== targetId;
+        });
+      });
+    });
+
+    // 장소 이름을 그대로 사용해 구글 지도 검색 링크를 만듭니다.
+    document.querySelectorAll('a[data-map]').forEach((link) => {
+      const placeName = link.textContent.trim();
+      link.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(placeName);
+      link.setAttribute('aria-label', placeName + ' 구글 지도에서 검색하기 (새 창)');
+    });
+
+    // 준비물 체크 진행률. 저장 기능은 없으므로 새로고침하면 초기화됩니다.
+    const checklist = document.getElementById('checklist');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
+
+    function updateProgress() {
+      const checkedCount = checklist.querySelectorAll('input[type="checkbox"]:checked').length;
+      const totalCount = checkboxes.length;
+      const percentage = totalCount ? (checkedCount / totalCount) * 100 : 0;
+      progressFill.style.width = percentage + '%';
+      progressText.textContent = checkedCount + ' / ' + totalCount;
+    }
+    checkboxes.forEach((checkbox) => checkbox.addEventListener('change', updateProgress));
+    updateProgress();
+
+    // 다크 모드 전환. 별도 저장은 하지 않습니다.
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('theme-dark');
+      themeToggle.setAttribute('aria-pressed', String(isDark));
+      themeToggle.textContent = isDark ? '☀ 라이트 모드' : '☾ 다크 모드';
+    });
+  </script>
+</body>
+</html>
