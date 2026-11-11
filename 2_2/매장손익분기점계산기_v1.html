@@ -1,0 +1,617 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매장 손익분기점 계산기</title>
+<style>
+:root {
+  --primary: #2457a7;
+  --primary-dark: #19427f;
+  --bg: #f4f6fa;
+  --border: #e1e5ec;
+  --text: #202938;
+  --muted: #697586;
+  --green: #16834b;
+  --red: #d04444;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+  line-height: 1.6;
+}
+.container {
+  width: min(100% - 32px, 980px);
+  margin: 36px auto;
+}
+header { margin-bottom: 24px; }
+header h1 {
+  margin: 0 0 8px;
+  font-size: clamp(25px, 4vw, 34px);
+  letter-spacing: -1.2px;
+}
+header p { margin: 0; color: var(--muted); }
+.notice {
+  padding: 14px 16px;
+  background: #edf4ff;
+  border: 1px solid #d4e3fa;
+  border-radius: 10px;
+  color: #31547f;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 3px 12px rgba(20,35,60,.035);
+}
+.panel h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+.month-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.field { margin-bottom: 16px; min-width: 0; }
+.field:last-child { margin-bottom: 0; }
+label {
+  display: block;
+  font-weight: 650;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.hint {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 3px;
+}
+input {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #cfd6e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: var(--text);
+  background: white;
+}
+input:focus {
+  outline: 3px solid rgba(36,87,167,.13);
+  border-color: var(--primary);
+}
+input.invalid { border-color: var(--red); }
+.error {
+  display: none;
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 5px;
+}
+.error.show { display: block; }
+.cost-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 22px;
+}
+.cost-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+.cost-item label { margin-bottom: 5px; }
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 9px;
+  padding: 14px 16px;
+  margin-top: 18px;
+  font-weight: 700;
+}
+.total-row strong { font-size: 19px; }
+.ratio-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin: 22px 0;
+}
+button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:focus-visible {
+  outline: 3px solid #8eb6f4;
+  outline-offset: 2px;
+}
+.primary {
+  flex: 1;
+  background: var(--primary);
+  color: white;
+}
+.primary:hover { background: var(--primary-dark); }
+.secondary {
+  background: white;
+  color: #4c5665;
+  border: 1px solid var(--border);
+}
+.secondary:hover { background: #f3f5f8; }
+#results { display: none; }
+.result-status {
+  padding: 17px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-size: 17px;
+  font-weight: 750;
+}
+.result-status.profit { background: #eaf7ef; color: var(--green); }
+.result-status.loss { background: #fff0ef; color: var(--red); }
+.result-status.neutral { background: #edf4ff; color: #315a91; }
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.metric {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 15px;
+  min-width: 0;
+}
+.metric .name { color: var(--muted); font-size: 13px; }
+.metric .value {
+  font-size: clamp(18px, 3vw, 23px);
+  font-weight: 750;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.metric .desc { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.explanation {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 9px;
+  background: #f5f7fa;
+  font-size: 14px;
+}
+.explanation p { margin: 5px 0; }
+.caution {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 18px;
+  line-height: 1.7;
+}
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 10px 0 30px;
+}
+@media (max-width: 640px) {
+  .container { width: min(100% - 22px, 980px); margin: 22px auto; }
+  .panel { padding: 18px 15px; }
+  .month-row, .cost-grid, .result-grid { grid-template-columns: 1fr; }
+  .button-row { flex-direction: column; }
+  button { width: 100%; }
+}
+@media print {
+  body { background: white; }
+  .container { width: 100%; margin: 0; }
+  .panel { box-shadow: none; break-inside: avoid; }
+  .button-row, footer { display: none; }
+  #results { display: block !important; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>매장 손익분기점 계산기</h1>
+    <p>한 달의 매출과 비용을 입력하면 매장의 손익 상태와 손익분기점 매출을 계산합니다.</p>
+  </header>
+
+  <div class="notice">
+    <strong>입력 안내</strong><br>
+    매출과 비용은 부가가치세를 제외한 공급가액 기준으로 일관되게 입력해 주세요.
+    입력하지 않은 비용 항목은 0원으로 계산합니다.
+  </div>
+
+  <form id="calculatorForm" novalidate>
+
+    <section class="panel">
+      <h2>1. 매출 정보</h2>
+      <div class="month-row">
+        <div class="field">
+          <label for="month">분석 대상 월</label>
+          <input type="month" id="month" required>
+          <span class="error" id="monthError">분석 대상 월을 선택해 주세요.</span>
+        </div>
+        <div class="field">
+          <label for="operatingDays">실제 영업일수
+            <span class="hint">해당 월에 실제 영업한 날짜 수</span>
+          </label>
+          <input type="number" id="operatingDays" min="1" step="1"
+            placeholder="예: 26" required>
+          <span class="error" id="daysError">영업일수는 1일 이상의 정수로 입력해 주세요.</span>
+        </div>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label for="sales">월 실제 매출액 (원)
+          <span class="hint">해당 월 전체 영업 매출액</span>
+        </label>
+        <input type="text" id="sales" inputmode="numeric"
+          placeholder="예: 30,000,000" required>
+        <span class="error" id="salesError">매출액을 0원 이상으로 입력해 주세요.</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2. 고정비</h2>
+      <p class="hint">매출이나 판매량이 달라져도 매월 대체로 일정하게 발생하는 비용입니다.</p>
+      <div class="cost-grid">
+        <div class="cost-item">
+          <label for="rent">임대료</label>
+          <input class="cost fixed" id="rent" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="salary">직원 고정급여</label>
+          <input class="cost fixed" id="salary" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="management">관리비</label>
+          <input class="cost fixed" id="management" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="telecom">통신비·인터넷비</label>
+          <input class="cost fixed" id="telecom" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="insurance">보험료</label>
+          <input class="cost fixed" id="insurance" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="subscription">정기 구독료 및 기타 정기 비용</label>
+          <input class="cost fixed" id="subscription" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="otherFixed">기타 고정비</label>
+          <input class="cost fixed" id="otherFixed" inputmode="numeric" placeholder="0">
+        </div>
+      </div>
+      <div class="total-row">
+        <span>고정비 합계</span>
+        <strong id="fixedTotal">0원</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. 변동비</h2>
+      <p class="hint">매출이나 판매량에 따라 함께 증가하거나 감소하는 비용입니다.</p>
+      <div class="cost-grid">
+        <div class="cost-item">
+          <label for="goods">식재료비·상품 매입원가
+            <span class="hint">가능하면 해당 월에 판매된 상품의 실제 원가</span>
+          </label>
+          <input class="cost variable" id="goods" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="packaging">포장재·일회용품</label>
+          <input class="cost variable" id="packaging" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="cardFee">카드·간편결제 수수료</label>
+          <input class="cost variable" id="cardFee" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="deliveryFee">배달 플랫폼 수수료</label>
+          <input class="cost variable" id="deliveryFee" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="variableLabor">매출·판매량 연동 인건비</label>
+          <input class="cost variable" id="variableLabor" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="cost-item">
+          <label for="otherVariable">기타 변동비</label>
+          <input class="cost variable" id="otherVariable" inputmode="numeric" placeholder="0">
+        </div>
+      </div>
+      <div class="total-row">
+        <span>변동비 합계</span>
+        <strong id="variableTotal">0원</strong>
+      </div>
+      <div class="total-row">
+        <span>매출액 대비 변동비율</span>
+        <strong id="variableRatio">계산 전</strong>
+      </div>
+      <p class="ratio-note">
+        직원의 정기 고정급여는 고정비에, 판매량이나 매출에 따라 달라지는 인건비는 변동비에 입력하세요.
+        재고 매입액만 알고 있다면 해당 금액을 입력하되 실제 판매 원가와 차이가 날 수 있습니다.
+      </p>
+    </section>
+
+    <div class="button-row">
+      <button type="submit" class="primary">손익분기점 계산하기</button>
+      <button type="button" class="secondary" id="resetButton">초기화</button>
+    </div>
+  </form>
+
+  <section class="panel" id="results" aria-live="polite">
+    <h2>4. 계산 결과</h2>
+    <div id="status" class="result-status"></div>
+    <div class="result-grid">
+      <div class="metric">
+        <div class="name">월 실제 매출액</div>
+        <div class="value" id="rSales">-</div>
+        <div class="desc">입력한 월 매출액입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">월 고정비 합계</div>
+        <div class="value" id="rFixed">-</div>
+        <div class="desc">매출과 관계없이 발생하는 비용입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">월 변동비 합계</div>
+        <div class="value" id="rVariable">-</div>
+        <div class="desc">매출이나 판매량에 따라 달라지는 비용입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">변동비율</div>
+        <div class="value" id="rRatio">-</div>
+        <div class="desc">매출액 중 변동비가 차지하는 비율입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">손익분기점 매출액</div>
+        <div class="value" id="rBreakEven">-</div>
+        <div class="desc">이 매출액에서 추정 영업손익이 0원이 됩니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">실제 매출과 손익분기점 차이</div>
+        <div class="value" id="rDifference">-</div>
+        <div class="desc">양수는 초과, 음수는 미달을 의미합니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">추정 영업손익</div>
+        <div class="value" id="rProfit">-</div>
+        <div class="desc">매출에서 입력한 고정비와 변동비를 뺀 금액입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">실제 일평균 매출</div>
+        <div class="value" id="rDailySales">-</div>
+        <div class="desc">실제 매출액을 영업일수로 나눈 금액입니다.</div>
+      </div>
+      <div class="metric">
+        <div class="name">손익분기점 달성 일평균 매출</div>
+        <div class="value" id="rDailyBreakEven">-</div>
+        <div class="desc">같은 영업일수 기준으로 필요한 하루 평균 매출입니다.</div>
+      </div>
+    </div>
+    <div class="explanation" id="explanation"></div>
+    <p class="caution">
+      ※ 본 계산 결과는 입력한 비용을 기준으로 한 관리용 추정치입니다.
+      입력하지 않은 비용, 세금, 이자, 감가상각, 재고 평가 차이 등은 반영되지 않을 수 있으며
+      실제 회계상 손익과 다를 수 있습니다. 매출과 비용의 기간 및 부가가치세 제외 기준을 일관되게 입력하세요.
+    </p>
+    <div class="button-row">
+      <button type="button" class="primary" onclick="window.print()">결과 인쇄 / PDF 저장</button>
+      <button type="button" class="secondary" id="editButton">입력값 수정하기</button>
+    </div>
+  </section>
+
+  <footer>매장 손익분기점 계산기 · 월별 경영관리 참고용</footer>
+</div>
+
+<script>
+const form = document.getElementById("calculatorForm");
+const moneyInputs = document.querySelectorAll('input[inputmode="numeric"]');
+const fixedInputs = document.querySelectorAll(".fixed");
+const variableInputs = document.querySelectorAll(".variable");
+const results = document.getElementById("results");
+
+const numberFormat = new Intl.NumberFormat("ko-KR");
+const won = value => numberFormat.format(Math.round(value)) + "원";
+const percent = value => (value * 100).toFixed(1) + "%";
+
+function getNumber(input) {
+  const digits = input.value.replace(/[^0-9]/g, "");
+  return digits === "" ? 0 : Number(digits);
+}
+
+function sumInputs(inputs) {
+  return [...inputs].reduce((sum, input) => sum + getNumber(input), 0);
+}
+
+function updateTotals() {
+  const fixed = sumInputs(fixedInputs);
+  const variable = sumInputs(variableInputs);
+  const sales = getNumber(document.getElementById("sales"));
+
+  document.getElementById("fixedTotal").textContent = won(fixed);
+  document.getElementById("variableTotal").textContent = won(variable);
+
+  document.getElementById("variableRatio").textContent =
+    sales > 0 ? percent(variable / sales) : "매출 입력 후 계산";
+}
+
+moneyInputs.forEach(input => {
+  input.addEventListener("input", () => {
+    const digits = input.value.replace(/[^0-9]/g, "");
+    input.value = digits ? numberFormat.format(Number(digits)) : "";
+    input.classList.remove("invalid");
+    updateTotals();
+    clearError(input.id);
+    results.style.display = "none";
+  });
+});
+
+function showError(id, message) {
+  const input = document.getElementById(id);
+  const error = document.getElementById(id + "Error");
+  if (input) input.classList.add("invalid");
+  if (error) {
+    error.textContent = message;
+    error.classList.add("show");
+  }
+}
+
+function clearError(id) {
+  const input = document.getElementById(id);
+  const error = document.getElementById(id + "Error");
+  if (input) input.classList.remove("invalid");
+  if (error) error.classList.remove("show");
+}
+
+function clearAllErrors() {
+  document.querySelectorAll(".error").forEach(el => el.classList.remove("show"));
+  document.querySelectorAll("input").forEach(el => el.classList.remove("invalid"));
+}
+
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
+  clearAllErrors();
+
+  const month = document.getElementById("month").value;
+  const salesInput = document.getElementById("sales");
+  const daysInput = document.getElementById("operatingDays");
+  const sales = getNumber(salesInput);
+  const days = Number(daysInput.value);
+
+  let valid = true;
+
+  if (!month) {
+    showError("month", "분석 대상 월을 선택해 주세요.");
+    valid = false;
+  }
+  if (salesInput.value.trim() === "" || !Number.isFinite(sales)) {
+    showError("sales", "매출액을 입력해 주세요. 매출이 없다면 0을 입력하세요.");
+    valid = false;
+  }
+  if (daysInput.value.trim() === "" || !Number.isInteger(days) || days < 1) {
+    showError("operatingDays", "영업일수는 1일 이상의 정수로 입력해 주세요.");
+    valid = false;
+  }
+
+  if (!valid) {
+    document.querySelector(".error.show")?.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+
+  const fixed = sumInputs(fixedInputs);
+  const variable = sumInputs(variableInputs);
+  const profit = sales - fixed - variable;
+  const dailySales = sales / days;
+
+  document.getElementById("rSales").textContent = won(sales);
+  document.getElementById("rFixed").textContent = won(fixed);
+  document.getElementById("rVariable").textContent = won(variable);
+  document.getElementById("rProfit").textContent = won(profit);
+  document.getElementById("rDailySales").textContent = won(dailySales);
+
+  const status = document.getElementById("status");
+  const explanation = document.getElementById("explanation");
+  const ratioElement = document.getElementById("rRatio");
+  const breakEvenElement = document.getElementById("rBreakEven");
+  const differenceElement = document.getElementById("rDifference");
+  const dailyBreakEvenElement = document.getElementById("rDailyBreakEven");
+
+  if (sales === 0) {
+    ratioElement.textContent = "계산 불가";
+    breakEvenElement.textContent = "계산 불가";
+    differenceElement.textContent = "계산 불가";
+    dailyBreakEvenElement.textContent = "계산 불가";
+    status.className = "result-status neutral";
+    status.textContent = "매출액이 0원입니다. 손익분기점 계산을 할 수 없습니다.";
+    explanation.innerHTML =
+      "<p>매출액이 0원이므로 변동비율과 손익분기점 매출액을 계산할 수 없습니다.</p>" +
+      "<p>현재 입력 기준 추정 영업손익은 " + won(profit) + "입니다.</p>";
+  } else {
+    const variableRatio = variable / sales;
+    ratioElement.textContent = percent(variableRatio);
+
+    if (variable >= sales) {
+      breakEvenElement.textContent = "산출 불가";
+      differenceElement.textContent = "산출 불가";
+      dailyBreakEvenElement.textContent = "산출 불가";
+      status.className = "result-status neutral";
+      status.textContent = "변동비가 매출액 이상입니다. 일반적인 손익분기점 산출이 어렵습니다.";
+      explanation.innerHTML =
+        "<p>변동비율이 100% 이상이므로 공헌이익이 0 이하입니다.</p>" +
+        "<p>현재 입력 기준 추정 영업손익은 " + won(profit) + "입니다.</p>" +
+        "<p>비용 분류와 입력 금액을 다시 확인해 주세요.</p>";
+    } else {
+      const contributionRatio = 1 - variableRatio;
+      const breakEven = fixed / contributionRatio;
+      const difference = sales - breakEven;
+      const dailyBreakEven = breakEven / days;
+
+      breakEvenElement.textContent = won(breakEven);
+      differenceElement.textContent =
+        (difference > 0 ? "+" : "") + won(difference);
+      dailyBreakEvenElement.textContent = won(dailyBreakEven);
+
+      if (difference > 0) {
+        status.className = "result-status profit";
+        status.textContent = "손익분기점 초과 · 흑자 추정";
+        explanation.innerHTML =
+          "<p>현재 매출은 손익분기점보다 " + won(difference) + " 높습니다.</p>" +
+          "<p>입력한 비용 기준 추정 영업손익은 " + won(profit) + "입니다.</p>" +
+          "<p>현재 영업일수 기준 하루 평균 약 " + won(dailyBreakEven) +
+          " 이상의 매출이 손익분기점 달성에 필요합니다.</p>";
+      } else if (difference < 0) {
+        status.className = "result-status loss";
+        status.textContent = "손익분기점 미달 · 적자 추정";
+        explanation.innerHTML =
+          "<p>손익분기점까지 매출 " + won(Math.abs(difference)) + "이 더 필요합니다.</p>" +
+          "<p>현재 영업일수 기준 하루 평균 약 " + won(dailyBreakEven) +
+          "의 매출이 필요합니다.</p>" +
+          "<p>입력한 비용 기준 추정 영업손익은 " + won(profit) + "입니다.</p>";
+      } else {
+        status.className = "result-status neutral";
+        status.textContent = "손익분기점 도달";
+        explanation.innerHTML =
+          "<p>실제 매출이 손익분기점과 같습니다. 입력한 비용 기준 추정 영업손익은 0원입니다.</p>";
+      }
+    }
+  }
+
+  results.style.display = "block";
+  results.scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+document.getElementById("resetButton").addEventListener("click", () => {
+  if (!confirm("입력한 모든 값과 계산 결과를 초기화할까요?")) return;
+  form.reset();
+  clearAllErrors();
+  results.style.display = "none";
+  updateTotals();
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+document.getElementById("editButton").addEventListener("click", () => {
+  document.getElementById("sales").focus();
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+updateTotals();
+</script>
+</body>
+</html>
